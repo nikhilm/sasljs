@@ -24,6 +24,7 @@ class ServerConnection : public node::ObjectWrap
     New (const v8::Arguments& args);
 
     static v8::Handle<v8::Value> GetMechanisms( const v8::Arguments& args );
+    static v8::Handle<v8::Value> Start( const v8::Arguments &args );
 
     ServerConnection( const char *service, const char *realm );
     ~ServerConnection();
