@@ -6,7 +6,7 @@
 #ifndef SASLJS_H
 #define SASLJS_H
 
-#include <sasl/sasl.h>
+#include <gsasl.h>
 
 #include <v8.h>
 #include <node.h>
@@ -25,13 +25,16 @@ class ServerConnection : public node::ObjectWrap
 
     static v8::Handle<v8::Value> GetMechanisms( const v8::Arguments& args );
     static v8::Handle<v8::Value> Start( const v8::Arguments &args );
+    static v8::Handle<v8::Value> Step( const v8::Arguments &args );
 
     ServerConnection( const char *service, const char *realm );
     ~ServerConnection();
 
   private:
-    sasl_conn_t *m_sasl;
+    Gsasl_session *m_session;
 };
+
+static Gsasl *ctx;
 }
 
 #endif

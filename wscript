@@ -17,7 +17,7 @@ def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   obj.target = "lib/binding_sasl"
   obj.find_sources_in_dirs("lib")
-  obj.lib = "sasl2"
+  obj.lib = "gsasl"
 
 def shutdown(bld):
   # HACK to get binding.node out of build directory.

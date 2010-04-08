@@ -4,6 +4,8 @@ var sys = require('sys');
 process.mixin( exports, saslc );
 exports.createSaslConnection = function() {
     var serv = new saslc.ServerConnection();
-    serv.mechanisms = JSON.parse( serv._mechanisms() );
+    serv.mechanisms = serv._mechanisms().split(' ');
+    // POP empty element
+    serv.mechanisms.pop();
     return serv;
 }
