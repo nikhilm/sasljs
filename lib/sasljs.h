@@ -26,11 +26,13 @@ class ServerSession : public node::ObjectWrap
     static v8::Handle<v8::Value> GetMechanisms( const v8::Arguments& args );
     static v8::Handle<v8::Value> Start( const v8::Arguments &args );
     static v8::Handle<v8::Value> Step( const v8::Arguments &args );
+    static int Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop );
 
-    ServerSession( const char *service, const char *realm );
+    ServerSession( const char *realm, v8::Persistent<v8::Function> *cb );
     ~ServerSession();
 
   private:
+    v8::Persistent<v8::Function> *m_callback;
     Gsasl_session *m_session;
 };
 

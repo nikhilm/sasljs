@@ -86,15 +86,22 @@ ServerSession::New (const v8::Arguments& args)
 {
   HandleScope scope;
 
-  // TODO get service, realm from args
-  ServerSession *server = new ServerSession( "xmpp", "localhost" );
+  REQ_STR_ARG( 0, realm );
+
+  if( args.Length() <= 1 || !args[1]->IsFunction() ) {
+    return ThrowException(Exception::TypeError(
+                                  String::New("Argument 1 must be a callback")));
+  }
+
+  ServerSession *server = new ServerSession( *realm, cb_persist( args[1] ) );
   server->Wrap( args.This() );
   return args.This();
 }
 
-ServerSession::ServerSession( const char *service, const char *realm )
+ServerSession::ServerSession( const char *realm, Persistent<Function> *cb )
   : ObjectWrap()
   , m_session( NULL )
+  , m_callback( cb )
 {
 }
 
@@ -119,22 +126,30 @@ ServerSession::GetMechanisms( const v8::Arguments &args )
   return ret;
 }
 
-static int
-callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
+int
+ServerSession::Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
 {
-  std::cerr << "!!!!!!!!!! Callback called with property " << prop << std::endl;
-  char buf[500];
-  switch( prop ) {
-    case GSASL_REALM:
-      strcpy(buf, "localhost");
-      gsasl_property_set( sctx, GSASL_REALM, buf );
-      return GSASL_OK;
+  ServerSession *sc = static_cast<ServerSession*>(gsasl_session_hook_get( sctx ));
+  assert( sc );
 
-    case GSASL_PASSWORD:
-      gsasl_property_set( sctx, GSASL_PASSWORD, "1234" );
-      return GSASL_OK;
+  Local<Value> argv[] = { Integer::New( prop ) };
+  Local<Value> ret = (*sc->m_callback)->Call( Context::GetCurrent()->Global(), 1, argv );
+  std::cerr << "Array " << ret->IsArray();
+  std::cerr << "Obj " << ret->IsObject();
+  std::cerr << "Integer " << ret->IsInt32();
+  std::cerr << "String " << ret->IsString();
+  std::cerr << "Null " << ret->IsNull();
+  std::cerr << "Undefined " << ret->IsUndefined();
+  std::cerr << "True " << ret->IsTrue();
+  std::cerr << "False " << ret->IsFalse();
+  std::cerr << "Function " << ret->IsFunction();
+  std::cerr << "Number " << ret->IsNumber();
+  std::cerr << "External " << ret->IsExternal();
+  if( ret->IsString() ) {
+    std::cerr << "--- Returned " << *String::Utf8Value(ret->ToString());
+    gsasl_property_set( sctx, prop, *String::Utf8Value(ret->ToString()) );
+    return GSASL_OK;
   }
-
   return GSASL_NO_CALLBACK;
 }
 
@@ -155,8 +170,9 @@ ServerSession::Start( const v8::Arguments &args )
     return ThrowException( Exception::Error( String::New( "sasljs: This session is already started!" ) ) );
   }
 
-  gsasl_callback_set( ctx, callback );
   res = gsasl_server_start( ctx, *mechanismString, &sc->m_session );
+  gsasl_session_hook_set( sc->m_session, sc );
+  gsasl_callback_set( ctx, sc->Callback );
 
   return Integer::New( res );
 }
