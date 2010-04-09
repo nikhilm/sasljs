@@ -24,7 +24,7 @@ using namespace node;
   String::Utf8Value VAR(args[I]->ToString());
 
 namespace sasljs {
-void ServerConnection::Initialize ( Handle<Object> target )
+void ServerSession::Initialize ( Handle<Object> target )
 {
   v8::HandleScope scope;
 
@@ -73,39 +73,39 @@ void ServerConnection::Initialize ( Handle<Object> target )
   NODE_SET_PROTOTYPE_METHOD( t, "start", Start );
   NODE_SET_PROTOTYPE_METHOD( t, "step", Step );
 
-  target->Set( v8::String::NewSymbol( "ServerConnection"), t->GetFunction() );
+  target->Set( v8::String::NewSymbol( "ServerSession"), t->GetFunction() );
 }
 
 /*
  * Call in JS
- * new ServerConnection( "service name" );
+ * new ServerSession( "service name" );
  * All other options default to NULL for now
  */
 v8::Handle<v8::Value>
-ServerConnection::New (const v8::Arguments& args)
+ServerSession::New (const v8::Arguments& args)
 {
   HandleScope scope;
 
   // TODO get service, realm from args
-  ServerConnection *server = new ServerConnection( "xmpp", "localhost" );
+  ServerSession *server = new ServerSession( "xmpp", "localhost" );
   server->Wrap( args.This() );
   return args.This();
 }
 
-ServerConnection::ServerConnection( const char *service, const char *realm )
+ServerSession::ServerSession( const char *service, const char *realm )
   : ObjectWrap()
   , m_session( NULL )
 {
 }
 
-ServerConnection::~ServerConnection()
+ServerSession::~ServerSession()
 {
 }
 
 Handle<Value>
-ServerConnection::GetMechanisms( const v8::Arguments &args )
+ServerSession::GetMechanisms( const v8::Arguments &args )
 {
-  ServerConnection *sc = Unwrap<ServerConnection>( args.This() );
+  ServerSession *sc = Unwrap<ServerSession>( args.This() );
 
   char *result;
   
@@ -144,13 +144,13 @@ callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
  *   data : data to send to client if error == GSASL_OK }
  */
 v8::Handle<v8::Value>
-ServerConnection::Start( const v8::Arguments &args )
+ServerSession::Start( const v8::Arguments &args )
 {
   REQ_STR_ARG( 0, mechanismString );
 
   int res;
 
-  ServerConnection *sc = Unwrap<ServerConnection>( args.This() );
+  ServerSession *sc = Unwrap<ServerSession>( args.This() );
   if( sc->m_session != NULL ) {
     return ThrowException( Exception::Error( String::New( "sasljs: This session is already started!" ) ) );
   }
@@ -162,11 +162,11 @@ ServerConnection::Start( const v8::Arguments &args )
 }
 
 v8::Handle<v8::Value>
-ServerConnection::Step( const v8::Arguments &args )
+ServerSession::Step( const v8::Arguments &args )
 {
   REQ_STR_ARG( 0, clientinString );
 
-  ServerConnection *sc = Unwrap<ServerConnection>( args.This() );
+  ServerSession *sc = Unwrap<ServerSession>( args.This() );
 
   char *reply;
   size_t len;
@@ -213,5 +213,5 @@ init (Handle<Object> target)
       abort();
   }
 
-  sasljs::ServerConnection::Initialize(target);
+  sasljs::ServerSession::Initialize(target);
 }

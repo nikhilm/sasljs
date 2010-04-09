@@ -13,7 +13,7 @@
 #include <node/node_object_wrap.h>
 
 namespace sasljs {
-class ServerConnection : public node::ObjectWrap
+class ServerSession : public node::ObjectWrap
 {
   public:
     static void
@@ -27,8 +27,8 @@ class ServerConnection : public node::ObjectWrap
     static v8::Handle<v8::Value> Start( const v8::Arguments &args );
     static v8::Handle<v8::Value> Step( const v8::Arguments &args );
 
-    ServerConnection( const char *service, const char *realm );
-    ~ServerConnection();
+    ServerSession( const char *service, const char *realm );
+    ~ServerSession();
 
   private:
     Gsasl_session *m_session;
