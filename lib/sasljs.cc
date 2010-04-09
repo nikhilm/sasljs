@@ -158,7 +158,7 @@ ServerSession::Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
   assert( sc );
 
   Local<Value> argv[] = { Integer::New( prop ) };
-  Local<Value> ret = (*sc->m_callback)->Call( Context::GetCurrent()->Global(), 1, argv );
+  Local<Value> ret = (*sc->m_callback)->Call( sc->handle_, 1, argv );
   if( ret->IsString() ) {
     gsasl_property_set( sctx, prop, *String::Utf8Value(ret->ToString()) );
     return GSASL_OK;
