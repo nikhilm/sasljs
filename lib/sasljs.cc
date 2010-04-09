@@ -159,19 +159,7 @@ ServerSession::Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
 
   Local<Value> argv[] = { Integer::New( prop ) };
   Local<Value> ret = (*sc->m_callback)->Call( Context::GetCurrent()->Global(), 1, argv );
-  std::cerr << "Array " << ret->IsArray();
-  std::cerr << "Obj " << ret->IsObject();
-  std::cerr << "Integer " << ret->IsInt32();
-  std::cerr << "String " << ret->IsString();
-  std::cerr << "Null " << ret->IsNull();
-  std::cerr << "Undefined " << ret->IsUndefined();
-  std::cerr << "True " << ret->IsTrue();
-  std::cerr << "False " << ret->IsFalse();
-  std::cerr << "Function " << ret->IsFunction();
-  std::cerr << "Number " << ret->IsNumber();
-  std::cerr << "External " << ret->IsExternal();
   if( ret->IsString() ) {
-    std::cerr << "--- Returned " << *String::Utf8Value(ret->ToString());
     gsasl_property_set( sctx, prop, *String::Utf8Value(ret->ToString()) );
     return GSASL_OK;
   }
