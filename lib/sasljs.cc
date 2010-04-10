@@ -206,34 +206,24 @@ ServerSession::Step( const v8::Arguments &args )
   ServerSession *sc = Unwrap<ServerSession>( args.This() );
 
   char *reply;
-  size_t len;
 
-  char *b64;
-  size_t crap;
-  gsasl_base64_from( *clientinString, strlen( *clientinString ), &b64, &crap );
-  std::cerr << std::endl << "sasljs: step: " << b64 << std::endl;
-
-  gsasl_base64_from( *clientinString, strlen(*clientinString), &reply, &len );
   int res = gsasl_step64( sc->m_session, *clientinString, &reply );
 
   Handle<Object> obj = Object::New();
-  Local<String> status = String::New( "status" );
+  Local<String> status = String::NewSymbol( "status" );
 
-  char *d64;
-  gsasl_base64_from( reply, strlen(reply), &d64, &len );
-  std::cerr << std::endl << "sasljs: step OUT: " << d64 << std::endl;
+  obj->Set( status, Integer::New( res ) );
 
   if( res == GSASL_OK || res == GSASL_NEEDS_MORE ) {
-    obj->Set( status, Integer::New( res ) );
-    obj->Set( String::New( "data" ), String::New( reply, strlen( reply ) ) );
-
-    return obj;
+    obj->Set( String::NewSymbol( "data" ), String::New( reply, strlen( reply ) ) );
   }
   else {
-    obj->Set( status, Integer::New( res ) );
-    obj->Set( String::New( "data" ), String::New( gsasl_strerror( res ) ) );
-    return obj;
+    obj->Set( String::NewSymbol( "data" ), String::New( gsasl_strerror( res ) ) );
   }
+
+  free( reply );
+  reply = NULL;
+  return obj;
 }
 
 Handle<Value>
