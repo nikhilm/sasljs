@@ -242,5 +242,28 @@ init (Handle<Object> target)
       abort();
   }
 
+  sasljs::property_strings["authid"] =                     GSASL_AUTHID;
+  sasljs::property_strings["authzid"] =                    GSASL_AUTHZID;
+  sasljs::property_strings["password"] =                   GSASL_PASSWORD;
+  sasljs::property_strings["anonymous_token"] =            GSASL_ANONYMOUS_TOKEN;
+  sasljs::property_strings["service"] =                    GSASL_SERVICE;
+  sasljs::property_strings["hostname"] =                   GSASL_HOSTNAME;
+  sasljs::property_strings["gssapi_display_name"] =       GSASL_GSSAPI_DISPLAY_NAME;
+  sasljs::property_strings["passcode"] =                   GSASL_PASSCODE;
+  sasljs::property_strings["suggested_pin"] =              GSASL_SUGGESTED_PIN;
+  sasljs::property_strings["pin"] =                        GSASL_PIN;
+  sasljs::property_strings["realm"] =                      GSASL_REALM;
+  sasljs::property_strings["digest_md5_hashed_password"] = GSASL_DIGEST_MD5_HASHED_PASSWORD;
+  sasljs::property_strings["qops"] =                       GSASL_QOPS;
+  sasljs::property_strings["qop"] =                        GSASL_QOP;
+  sasljs::property_strings["scram_iter"] =                 GSASL_SCRAM_ITER;
+  sasljs::property_strings["scram_salt"] =                 GSASL_SCRAM_SALT;
+  sasljs::property_strings["scram_salted_password"] =      GSASL_SCRAM_SALTED_PASSWORD;
+  sasljs::property_strings["validate_simple"] =            GSASL_VALIDATE_SIMPLE;
+  sasljs::property_strings["validate_external"] =          GSASL_VALIDATE_EXTERNAL;
+  sasljs::property_strings["validate_anonymous"] =         GSASL_VALIDATE_ANONYMOUS;
+  sasljs::property_strings["validate_gssapi"] =            GSASL_VALIDATE_GSSAPI;
+  sasljs::property_strings["validate_securid"] =           GSASL_VALIDATE_SECURID;
+
   sasljs::ServerSession::Initialize(target);
 }
