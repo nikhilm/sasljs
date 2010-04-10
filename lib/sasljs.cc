@@ -165,13 +165,13 @@ ServerSession::Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
   ServerSession *sc = static_cast<ServerSession*>(gsasl_session_hook_get( sctx ));
   ENSURE_STARTED( sc );
 
-  Local<Value> argv[] = { Integer::New( prop ) };
-  Local<Value> ret = (*sc->m_callback)->Call( sc->handle_, 1, argv );
-  if( ret->IsString() ) {
-    gsasl_property_set( sctx, prop, *String::AsciiValue(ret->ToString()) );
-    return GSASL_OK;
-  }
-  return GSASL_NO_CALLBACK;
+  Local<Value> argv[] = { Integer::New( prop ), Local<Object>::New(sc->handle_) };
+  Local<Value> ret = (*sc->m_callback)->Call( sc->handle_, 2, argv );
+
+  if( !ret->IsNumber() )
+    return GSASL_NO_CALLBACK;
+
+  return ret->ToInteger()->Value();
 }
 
 /**
