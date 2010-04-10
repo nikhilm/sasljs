@@ -221,8 +221,6 @@ ServerSession::Step( const v8::Arguments &args )
     obj->Set( String::NewSymbol( "data" ), String::New( gsasl_strerror( res ) ) );
   }
 
-  free( reply );
-  reply = NULL;
   return obj;
 }
 
