@@ -239,7 +239,7 @@ ServerSession::GetSaslProperty( const Arguments &args )
   std::map<std::string, Gsasl_property>::iterator it = property_strings.find( *key );
 
   if( it != property_strings.end() ) {
-    const char *prop = gsasl_property_get( sc->m_session, it->second );
+    const char *prop = gsasl_property_fast( sc->m_session, it->second );
 
     if( prop == NULL )
       return Null();
