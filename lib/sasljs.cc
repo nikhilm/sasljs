@@ -23,6 +23,11 @@ using namespace node;
                                   String::New("Argument " #I " must be a string"))); \
   String::Utf8Value VAR(args[I]->ToString());
 
+#define ENSURE_STARTED( session_obj )\
+  if( !session_obj->m_session )\
+    std::cerr << "sasljs: Session is not started!\n";\
+  assert( session_obj->m_session != NULL )
+
 namespace sasljs {
 void ServerSession::Initialize ( Handle<Object> target )
 {
@@ -97,6 +102,8 @@ void ServerSession::Initialize ( Handle<Object> target )
   NODE_SET_PROTOTYPE_METHOD( t, "_mechanisms", GetMechanisms );
   NODE_SET_PROTOTYPE_METHOD( t, "start", Start );
   NODE_SET_PROTOTYPE_METHOD( t, "step", Step );
+  NODE_SET_PROTOTYPE_METHOD( t, "property", GetSaslProperty );
+  NODE_SET_PROTOTYPE_METHOD( t, "setProperty", SetSaslProperty );
 
   target->Set( v8::String::NewSymbol( "ServerSession"), t->GetFunction() );
 }
@@ -132,6 +139,7 @@ ServerSession::ServerSession( const char *realm, Persistent<Function> *cb )
 
 ServerSession::~ServerSession()
 {
+  m_callback->Dispose();
 }
 
 Handle<Value>
@@ -155,12 +163,12 @@ int
 ServerSession::Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop )
 {
   ServerSession *sc = static_cast<ServerSession*>(gsasl_session_hook_get( sctx ));
-  assert( sc );
+  ENSURE_STARTED( sc );
 
   Local<Value> argv[] = { Integer::New( prop ) };
   Local<Value> ret = (*sc->m_callback)->Call( sc->handle_, 1, argv );
   if( ret->IsString() ) {
-    gsasl_property_set( sctx, prop, *String::Utf8Value(ret->ToString()) );
+    gsasl_property_set( sctx, prop, *String::AsciiValue(ret->ToString()) );
     return GSASL_OK;
   }
   return GSASL_NO_CALLBACK;
@@ -226,6 +234,57 @@ ServerSession::Step( const v8::Arguments &args )
     obj->Set( String::New( "data" ), String::New( gsasl_strerror( res ) ) );
     return obj;
   }
+}
+
+Handle<Value>
+ServerSession::GetSaslProperty( const Arguments &args )
+{
+  ServerSession *sc = Unwrap<ServerSession>( args.This() );
+  ENSURE_STARTED( sc );
+
+  if( args.Length() < 1 || !args[0]->IsString() ) {
+    return ThrowException( Exception::TypeError( String::New( "Expect property name as first argument" ) ) );
+  }
+
+  String::AsciiValue key( args[0]->ToString() );
+
+  std::map<std::string, Gsasl_property>::iterator it = property_strings.find( *key );
+
+  if( it != property_strings.end() ) {
+    const char *prop = gsasl_property_get( sc->m_session, it->second );
+
+    if( prop == NULL )
+      return Null();
+    return String::New( prop );
+  }
+
+  return Null();
+}
+
+Handle<Value>
+ServerSession::SetSaslProperty( const Arguments &args )
+{
+  ServerSession *sc = Unwrap<ServerSession>( args.This() );
+  ENSURE_STARTED( sc );
+
+  if( args.Length() < 1 || !args[0]->IsString() ) {
+    return ThrowException( Exception::TypeError( String::New( "Expect property name as first argument" ) ) );
+  }
+
+  String::AsciiValue key( args[0]->ToString() );
+
+  if( args.Length() < 2 || !args[1]->IsString() ) {
+    return ThrowException( Exception::TypeError( String::New( "Expect property value as second argument" ) ) );
+  }
+
+  String::AsciiValue val( args[1]->ToString() );
+
+  std::map<std::string, Gsasl_property>::iterator it = property_strings.find( *key );
+  if( it != property_strings.end() ) {
+    gsasl_property_set( sc->m_session, it->second, *val );
+  }
+
+  return Null();
 }
 }
 

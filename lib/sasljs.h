@@ -6,6 +6,9 @@
 #ifndef SASLJS_H
 #define SASLJS_H
 
+#include <map>
+#include <string>
+
 #include <gsasl.h>
 
 #include <v8.h>
@@ -26,6 +29,9 @@ class ServerSession : public node::ObjectWrap
     static v8::Handle<v8::Value> GetMechanisms( const v8::Arguments& args );
     static v8::Handle<v8::Value> Start( const v8::Arguments &args );
     static v8::Handle<v8::Value> Step( const v8::Arguments &args );
+    static v8::Handle<v8::Value> GetSaslProperty( const v8::Arguments &args );
+    static v8::Handle<v8::Value> SetSaslProperty( const v8::Arguments &args );
+
     static int Callback( Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop );
 
     ServerSession( const char *realm, v8::Persistent<v8::Function> *cb );
@@ -37,6 +43,7 @@ class ServerSession : public node::ObjectWrap
 };
 
 static Gsasl *ctx;
+static std::map<std::string, Gsasl_property> property_strings;
 }
 
 #endif
