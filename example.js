@@ -10,5 +10,6 @@ sys.debug( sys.inspect( sasl_conn ) );
 sys.debug( sasl_conn.property("realm") );
 sasl_conn.setProperty("realm", "localhost");
 sys.debug( sasl_conn.property("realm") );
+sys.debug( sys.inspect(sasl));
 //sys.debug( sys.inspect( sasl ) );
 
